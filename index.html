@@ -5,196 +5,177 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Thông tin lớp 12A2</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-
-    :root {
-      --primary-color: #4a90e2;
-      --background-color: #f4f4f4;
-      --card-background: #ffffff;
-      --text-color: #333;
-      --shadow-color: rgba(0, 0, 0, 0.1);
-    }
-
     body {
-      font-family: 'Roboto', sans-serif;
-      background-color: var(--background-color);
-      color: var(--text-color);
+      font-family: "Segoe UI", Roboto, sans-serif;
+      background: #f8f9fb;
       margin: 0;
+      color: #222;
     }
 
     header {
-      background-color: var(--primary-color);
+      background: #4a90e2;
       color: #fff;
-      padding: 1rem;
       text-align: center;
-      box-shadow: 0 2px 4px var(--shadow-color);
-      margin-bottom: 2rem;
+      padding: 1rem 0;
+      font-size: 1.5rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
-    #card-container {
+    main {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 2rem;
-      padding: 0 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      max-width: 1100px;
+      margin: auto;
     }
 
     student-card {
-      background-color: var(--card-background);
-      border-radius: 10px;
-      box-shadow: 0 4px 8px var(--shadow-color);
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
       overflow: hidden;
-      transition: transform 0.3s, box-shadow 0.3s;
-      display: flex;
-      flex-direction: column;
+      transition: 0.25s;
     }
 
     student-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
     }
 
-    .card-content {
-      padding: 1.5rem;
-      flex-grow: 1;
-    }
+    .card-content { padding: 1rem; }
 
     .card-header {
       display: flex;
       align-items: center;
+      gap: 1rem;
       margin-bottom: 1rem;
     }
 
     .avatar {
-      width: 80px;
-      height: 80px;
+      width: 70px;
+      height: 70px;
       border-radius: 50%;
-      margin-right: 1.5rem;
       object-fit: cover;
-      border: 3px solid var(--primary-color);
+      border: 2px solid #4a90e2;
     }
 
-    .card-header h2 {
+    h2 {
+      font-size: 1.2rem;
       margin: 0;
-      font-size: 1.5rem;
+    }
+
+    .card-body p {
+      margin: 0.3rem 0;
+      font-size: 0.95rem;
     }
 
     .social-links a {
-      color: var(--primary-color);
-      margin-right: 1rem;
-      font-size: 1.5rem;
-      transition: color 0.3s;
+      margin-right: 10px;
+      color: #4a90e2;
+      font-size: 1.3rem;
+      transition: 0.2s;
     }
 
-    .social-links a:hover { color: #333; }
+    .social-links a:hover {
+      color: #1f1f1f;
+    }
 
-    /* FORM */
+    /* Form gọn */
     #student-form {
-      max-width: 600px;
+      text-align: center;
       margin: 1rem auto;
+      background: #fff;
       padding: 1rem;
-      background-color: var(--card-background);
+      max-width: 500px;
       border-radius: 10px;
-      box-shadow: 0 4px 8px var(--shadow-color);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
     }
 
     #student-form input {
-      width: 100%;
-      padding: 0.5rem;
-      margin-bottom: 0.5rem;
+      width: 90%;
+      margin: 5px 0;
+      padding: 8px;
       border: 1px solid #ccc;
-      border-radius: 5px;
+      border-radius: 6px;
     }
 
     #student-form button {
-      background-color: var(--primary-color);
+      background: #4a90e2;
       color: #fff;
       border: none;
-      padding: 0.6rem 1rem;
-      border-radius: 5px;
+      padding: 8px 14px;
+      border-radius: 6px;
       cursor: pointer;
+      margin-top: 6px;
     }
 
-    #student-form button:hover { background-color: #357abd; }
+    #student-form button:hover { background: #357abd; }
 
-    /* MUSIC PLAYER */
+    /* Nhạc */
     .music-player {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background-color: var(--card-background);
-      padding: 0.5rem;
+      bottom: 15px;
+      right: 15px;
+      background: #fff;
       border-radius: 10px;
-      box-shadow: 0 4px 8px var(--shadow-color);
-      z-index: 1000;
-      transition: all 0.3s ease;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      padding: 0.5rem;
+      z-index: 100;
     }
 
-    .music-player.collapsed { width: 40px; height: 40px; overflow: hidden; padding: 0; }
-    .music-player.collapsed .music-controls { display: none; }
+    select, button { outline: none; }
   </style>
 </head>
-
 <body>
-  <header>
-    <h1>12A2</h1>
-  </header>
+  <header>Thông tin lớp 12A2</header>
 
-  <!-- FORM NHẬP DỮ LIỆU -->
   <section id="student-form">
-    <h2>Thêm học sinh mới</h2>
     <input type="text" id="name" placeholder="Họ tên">
     <input type="text" id="phone" placeholder="Số điện thoại">
     <input type="text" id="birthday" placeholder="Ngày sinh (VD: 20/11/2008)">
     <input type="email" id="email" placeholder="Email">
-    <input type="url" id="facebook" placeholder="Facebook URL">
-    <input type="url" id="instagram" placeholder="Instagram URL">
-    <input type="url" id="github" placeholder="GitHub URL">
-    <input type="url" id="tiktok" placeholder="TikTok URL">
-    <input type="url" id="youtube" placeholder="YouTube URL">
-    <input type="url" id="avatar" placeholder="Avatar URL">
-    <button onclick="submitForm()">Thêm học sinh</button>
+    <input type="url" id="facebook" placeholder="Link Facebook">
+    <input type="url" id="instagram" placeholder="Link Instagram">
+    <input type="url" id="github" placeholder="Link GitHub">
+    <input type="url" id="tiktok" placeholder="Link TikTok">
+    <input type="url" id="youtube" placeholder="Link YouTube">
+    <input type="url" id="avatar" placeholder="Link ảnh đại diện">
+    <button onclick="submitForm()">Thêm</button>
     <p id="form-message" style="color: green;"></p>
     <p id="form-error" style="color: red;"></p>
   </section>
 
   <main id="card-container"></main>
 
-  <!-- MUSIC PLAYER -->
-  <div class="music-player" id="musicPlayer">
-    <button class="toggle-btn" onclick="toggleMusicPlayer()"><i class="fas fa-music"></i></button>
-    <div class="music-controls">
-      <button id="playPauseBtn" onclick="togglePlayPause()"><i class="fas fa-play"></i> Phát</button>
-      <select id="songSelector" onchange="changeSong()">
-        <option value="https://cudatto1m.github.io/Thongtinhoc/nhacnen.mp3" selected>Nhạc nền 1</option>
-        <option value="https://cudatto1m.github.io/Thongtinhoc/nhacnen2.mp3">Nhạc nền 2</option>
-      </select>
-    </div>
+  <!-- Trình phát nhạc -->
+  <div class="music-player">
+    <button onclick="togglePlayPause()" id="playPauseBtn"><i class="fas fa-play"></i></button>
+    <select id="songSelector" onchange="changeSong()">
+      <option value="https://cudatto1m.github.io/Thongtinhoc/nhacnen.mp3" selected>Nhạc nền 1</option>
+      <option value="https://cudatto1m.github.io/Thongtinhoc/nhacnen2.mp3">Nhạc nền 2</option>
+    </select>
   </div>
 
   <audio id="bgMusic" loop>
     <source src="https://cudatto1m.github.io/Thongtinhoc/nhacnen.mp3" type="audio/mpeg">
   </audio>
 
-  <!-- FIREBASE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-    // ==== DÁN CẤU HÌNH FIREBASE CỦA BẠN Ở ĐÂY ====
     const firebaseConfig = {
-  apiKey: "AIzaSyCrVM5Mqg33MY8feGyWDUQZ9lxJiEosNqU",
-  authDomain: "thongtin12a2-fcbb1.firebaseapp.com",
-  databaseURL: "https://thongtin12a2-fcbb1-default-rtdb.firebaseio.com",
-  projectId: "thongtin12a2-fcbb1",
-  storageBucket: "thongtin12a2-fcbb1.firebasestorage.app",
-  messagingSenderId: "68791424681",
-  appId: "1:68791424681:web:556e527fe3710b4a313bb8",
-  measurementId: "G-QQF3ZNECK5"
-};
+      apiKey: "AIzaSyCrVM5Mqg33MY8feGyWDUQZ9lxJiEosNqU",
+      authDomain: "thongtin12a2-fcbb1.firebaseapp.com",
+      databaseURL: "https://thongtin12a2-fcbb1-default-rtdb.firebaseio.com",
+      projectId: "thongtin12a2-fcbb1",
+      storageBucket: "thongtin12a2-fcbb1.firebasestorage.app",
+      messagingSenderId: "68791424681",
+      appId: "1:68791424681:web:556e527fe3710b4a313bb8",
+      measurementId: "G-QQF3ZNECK5"
+    };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
@@ -223,7 +204,7 @@
 
       try {
         await push(ref(db, 'students'), student);
-        message.textContent = "Thêm học sinh thành công!";
+        message.textContent = "✅ Thêm thành công!";
         error.textContent = "";
         form.reset();
       } catch (err) {
@@ -262,9 +243,9 @@
               <h2>${name}</h2>
             </div>
             <div class="card-body">
-              <p><strong>Số điện thoại:</strong> ${phone || 'N/A'}</p>
-              <p><strong>Ngày sinh:</strong> ${birthday || 'N/A'}</p>
-              <p><strong>Email:</strong> ${email || 'N/A'}</p>
+              <p><strong>SĐT:</strong> ${phone || '—'}</p>
+              <p><strong>Ngày sinh:</strong> ${birthday || '—'}</p>
+              <p><strong>Email:</strong> ${email || '—'}</p>
               <div class="social-links">
                 ${facebook ? `<a href="${facebook}" target="_blank"><i class="fab fa-facebook"></i></a>` : ""}
                 ${instagram ? `<a href="${instagram}" target="_blank"><i class="fab fa-instagram"></i></a>` : ""}
@@ -278,27 +259,24 @@
     }
     customElements.define("student-card", StudentCard);
 
-    // Nhạc
     const audio = document.getElementById('bgMusic');
     const playPauseBtn = document.getElementById('playPauseBtn');
     const songSelector = document.getElementById('songSelector');
-    const musicPlayer = document.getElementById('musicPlayer');
+
     window.togglePlayPause = function() {
       if (audio.paused) {
-        audio.play().then(() => playPauseBtn.innerHTML = '<i class="fas fa-pause"></i> Tạm dừng');
+        audio.play().then(() => playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>');
       } else {
         audio.pause();
-        playPauseBtn.innerHTML = '<i class="fas fa-play"></i> Phát';
+        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
       }
     };
+
     window.changeSong = function() {
       audio.src = songSelector.value;
       audio.play();
-      playPauseBtn.innerHTML = '<i class="fas fa-pause"></i> Tạm dừng';
-    };
-    window.toggleMusicPlayer = function() {
-      musicPlayer.classList.toggle('collapsed');
+      playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
     };
   </script>
 </body>
-</html>
+      </html>
