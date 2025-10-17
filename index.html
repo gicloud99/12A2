@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Thông tin lớp 12A2</title>
+  <title>Thông tin bạn bè lớp 12A2</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     body {
@@ -31,7 +31,7 @@
       margin: auto;
     }
 
-    student-card {
+    friend-card {
       background: #fff;
       border-radius: 12px;
       box-shadow: 0 3px 8px rgba(0,0,0,0.1);
@@ -39,19 +39,13 @@
       transition: 0.25s;
     }
 
-    student-card:hover {
+    friend-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 6px 16px rgba(0,0,0,0.15);
     }
 
     .card-content { padding: 1rem; }
-
-    .card-header {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
+    .card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
 
     .avatar {
       width: 70px;
@@ -61,15 +55,8 @@
       border: 2px solid #4a90e2;
     }
 
-    h2 {
-      font-size: 1.2rem;
-      margin: 0;
-    }
-
-    .card-body p {
-      margin: 0.3rem 0;
-      font-size: 0.95rem;
-    }
+    h2 { font-size: 1.2rem; margin: 0; }
+    .card-body p { margin: 0.3rem 0; font-size: 0.95rem; }
 
     .social-links a {
       margin-right: 10px;
@@ -77,13 +64,11 @@
       font-size: 1.3rem;
       transition: 0.2s;
     }
+    .social-links a:hover { color: #1f1f1f; }
 
-    .social-links a:hover {
-      color: #1f1f1f;
-    }
-
-    /* Form gọn */
-    #student-form {
+    /* Form ẩn mặc định */
+    #friend-form {
+      display: none;
       text-align: center;
       margin: 1rem auto;
       background: #fff;
@@ -93,7 +78,7 @@
       box-shadow: 0 3px 8px rgba(0,0,0,0.1);
     }
 
-    #student-form input {
+    #friend-form input {
       width: 90%;
       margin: 5px 0;
       padding: 8px;
@@ -101,7 +86,7 @@
       border-radius: 6px;
     }
 
-    #student-form button {
+    #friend-form button {
       background: #4a90e2;
       color: #fff;
       border: none;
@@ -111,7 +96,20 @@
       margin-top: 6px;
     }
 
-    #student-form button:hover { background: #357abd; }
+    #friend-form button:hover { background: #357abd; }
+
+    #add-btn {
+      display: block;
+      margin: 1rem auto;
+      background: #4a90e2;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    #add-btn:hover { background: #357abd; }
 
     /* Nhạc */
     .music-player {
@@ -124,14 +122,14 @@
       padding: 0.5rem;
       z-index: 100;
     }
-
-    select, button { outline: none; }
   </style>
 </head>
 <body>
-  <header>Thông tin lớp 12A2</header>
+  <header>Thông tin bạn bè lớp 12A2</header>
 
-  <section id="student-form">
+  <button id="add-btn" onclick="toggleForm()">➕ Thêm bạn</button>
+
+  <section id="friend-form">
     <input type="text" id="name" placeholder="Họ tên">
     <input type="text" id="phone" placeholder="Số điện thoại">
     <input type="text" id="birthday" placeholder="Ngày sinh (VD: 20/11/2008)">
@@ -141,15 +139,15 @@
     <input type="url" id="github" placeholder="Link GitHub">
     <input type="url" id="tiktok" placeholder="Link TikTok">
     <input type="url" id="youtube" placeholder="Link YouTube">
-    <input type="url" id="avatar" placeholder="Link ảnh đại diện">
-    <button onclick="submitForm()">Thêm</button>
-    <p id="form-message" style="color: green;"></p>
-    <p id="form-error" style="color: red;"></p>
+    <input type="file" id="avatarFile" accept="image/*" onchange="previewAvatar(event)">
+    <img id="avatarPreview" src="" alt="Xem trước ảnh" style="width:80px; height:80px; border-radius:50%; margin-top:10px; display:none;">
+    <button onclick="submitForm()">Lưu bạn</button>
+    <p id="form-message" style="color:green;"></p>
+    <p id="form-error" style="color:red;"></p>
   </section>
 
   <main id="card-container"></main>
 
-  <!-- Trình phát nhạc -->
   <div class="music-player">
     <button onclick="togglePlayPause()" id="playPauseBtn"><i class="fas fa-play"></i></button>
     <select id="songSelector" onchange="changeSong()">
@@ -180,16 +178,34 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    const form = document.getElementById('student-form');
+    const form = document.getElementById('friend-form');
     const container = document.getElementById('card-container');
     const message = document.getElementById('form-message');
     const error = document.getElementById('form-error');
+    let avatarLink = "";
+
+    window.toggleForm = function() {
+      form.style.display = form.style.display === "none" || form.style.display === "" ? "block" : "none";
+    };
+
+    window.previewAvatar = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        avatarLink = e.target.result;
+        const img = document.getElementById('avatarPreview');
+        img.src = avatarLink;
+        img.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    };
 
     window.submitForm = async function() {
       const name = document.getElementById('name').value;
-      if (!name) { error.textContent = "Vui lòng nhập họ tên!"; return; }
+      if (!name) { error.textContent = "Vui lòng nhập tên bạn!"; return; }
 
-      const student = {
+      const friend = {
         name,
         phone: document.getElementById('phone').value,
         birthday: document.getElementById('birthday').value,
@@ -199,31 +215,32 @@
         github: document.getElementById('github').value,
         tiktok: document.getElementById('tiktok').value,
         youtube: document.getElementById('youtube').value,
-        avatar: document.getElementById('avatar').value
+        avatar: avatarLink
       };
 
       try {
-        await push(ref(db, 'students'), student);
-        message.textContent = "✅ Thêm thành công!";
+        await push(ref(db, 'friends'), friend);
+        message.textContent = "✅ Đã lưu bạn!";
         error.textContent = "";
         form.reset();
+        document.getElementById('avatarPreview').style.display = 'none';
       } catch (err) {
         error.textContent = "Lỗi: " + err.message;
       }
     };
 
-    onValue(ref(db, 'students'), (snapshot) => {
+    onValue(ref(db, 'friends'), (snapshot) => {
       const data = snapshot.val();
       container.innerHTML = "";
       if (!data) return;
-      Object.values(data).forEach(s => {
-        const card = document.createElement('student-card');
-        for (const key in s) if (s[key]) card.setAttribute(key, s[key]);
+      Object.values(data).forEach(f => {
+        const card = document.createElement('friend-card');
+        for (const key in f) if (f[key]) card.setAttribute(key, f[key]);
         container.appendChild(card);
       });
     });
 
-    class StudentCard extends HTMLElement {
+    class FriendCard extends HTMLElement {
       connectedCallback() {
         const name = this.getAttribute("name");
         const phone = this.getAttribute("phone");
@@ -257,7 +274,7 @@
           </div>`;
       }
     }
-    customElements.define("student-card", StudentCard);
+    customElements.define("friend-card", FriendCard);
 
     const audio = document.getElementById('bgMusic');
     const playPauseBtn = document.getElementById('playPauseBtn');
@@ -271,7 +288,6 @@
         playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
       }
     };
-
     window.changeSong = function() {
       audio.src = songSelector.value;
       audio.play();
@@ -279,4 +295,4 @@
     };
   </script>
 </body>
-      </html>
+</html>
