@@ -116,7 +116,6 @@
       background-color: #357abd;
     }
 
-    /* === CSS CHO MUSIC PLAYER === */
     .music-player {
       position: fixed;
       bottom: 20px;
@@ -202,6 +201,31 @@
       outline: none;
       border-color: #357abd;
     }
+
+    #student-form {
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 1rem;
+      background-color: var(--card-background);
+      border-radius: 10px;
+      box-shadow: 0 4px 8px var(--shadow-color);
+    }
+
+    #student-form input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+
+    #student-form button {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-right: 0.5rem;
+    }
   </style>
 </head>
 
@@ -210,38 +234,40 @@
     <h1>12A2</h1>
   </header>
 
-  <section id="student-form" style="max-width: 600px; margin: 2rem auto; padding: 1rem; background-color: var(--card-background); border-radius: 10px; box-shadow: 0 4px 8px var(--shadow-color);">
+  <section id="student-form">
     <h2 id="form-title">Thêm học sinh mới</h2>
-    <label for="githubToken">GitHub Token:</label><br>
-    <input type="password" id="githubToken" placeholder="Nhập Personal Access Token" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;"><br>
+    <label for="githubToken">GitHub Token (cho sửa/thêm):</label><br>
+    <input type="password" id="githubToken" placeholder="Nhập Personal Access Token"><br>
+    <label for="fetchToken">GitHub Token (cho tải dữ liệu):</label><br>
+    <input type="password" id="fetchToken" placeholder="Nhập PAT để tải (nếu repo private)"><br>
     <label for="name">Họ tên:</label><br>
-    <input type="text" id="name" placeholder="Nhập họ tên" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;"><br>
+    <input type="text" id="name" placeholder="Nhập họ tên"><br>
     <label for="phone">Số điện thoại:</label><br>
-    <input type="text" id="phone" placeholder="Nhập số điện thoại" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;"><br>
+    <input type="text" id="phone" placeholder="Nhập số điện thoại"><br>
     <label for="birthday">Ngày sinh:</label><br>
-    <input type="text" id="birthday" placeholder="VD: 20/11/2008" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;"><br>
+    <input type="text" id="birthday" placeholder="VD: 20/11/2008"><br>
     <label for="email">Email:</label><br>
-    <input type="email" id="email" placeholder="Nhập email" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;"><br>
+    <input type="email" id="email" placeholder="Nhập email"><br>
     <label for="facebook">Facebook URL:</label><br>
-    <input type="url" id="facebook" placeholder="Nhập link Facebook" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;"><br>
+    <input type="url" id="facebook" placeholder="Nhập link Facebook"><br>
     <label for="instagram">Instagram URL:</label><br>
-    <input type="url" id="instagram" placeholder="Nhập link Instagram" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;"><br>
+    <input type="url" id="instagram" placeholder="Nhập link Instagram"><br>
     <label for="github">GitHub URL:</label><br>
-    <input type="url" id="github" placeholder="Nhập link GitHub" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;"><br>
+    <input type="url" id="github" placeholder="Nhập link GitHub"><br>
     <label for="tiktok">TikTok URL:</label><br>
-    <input type="url" id="tiktok" placeholder="Nhập link TikTok" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;"><br>
+    <input type="url" id="tiktok" placeholder="Nhập link TikTok"><br>
     <label for="youtube">YouTube URL:</label><br>
-    <input type="url" id="youtube" placeholder="Nhập link YouTube" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;"><br>
+    <input type="url" id="youtube" placeholder="Nhập link YouTube"><br>
     <label for="avatar">Avatar URL:</label><br>
-    <input type="url" id="avatar" placeholder="Nhập link ảnh avatar" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;"><br>
-    <button id="submit-btn" onclick="submitForm()" style="background-color: var(--primary-color); color: #fff; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer;">Thêm học sinh</button>
+    <input type="url" id="avatar" placeholder="Nhập link ảnh avatar"><br>
+    <button id="submit-btn" onclick="submitForm()">Thêm học sinh</button>
+    <button id="cancel-btn" onclick="resetForm()" style="background-color: #ccc; color: #333; display: none;">Hủy</button>
     <p id="form-message" style="color: green;"></p>
     <p id="form-error" style="color: red;"></p>
   </section>
 
   <main id="card-container"></main>
 
-  <!-- MUSIC PLAYER -->
   <div class="music-player" id="musicPlayer">
     <button class="toggle-btn" onclick="toggleMusicPlayer()">
       <i class="fas fa-music"></i>
@@ -263,57 +289,48 @@
   </audio>
 
   <script>
-    // === TẢI DỮ LIỆU TỪ GITHUB ===
     let students = [];
-    let currentEditIndex = -1; // Để theo dõi học sinh đang sửa
+    let currentEditIndex = -1;
+
+    const OWNER = 'gicloud99';
+    const REPO = '12A2';
+    const PATH = 'students.json';
+    const BRANCH = 'main';
 
     async function fetchStudents() {
-      const owner = 'your-username'; // Thay bằng username GitHub của bạn
-      const repo = 'your-repo'; // Thay bằng tên repo
-      const path = 'data/students.json'; // Đường dẫn file JSON trong repo
-      const branch = 'main'; // Branch
-      const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
+      const fetchToken = document.getElementById('fetchToken').value;
+      const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}?ref=${BRANCH}`;
       const headers = {
         'Accept': 'application/vnd.github.v3+json',
         'Content-Type': 'application/json'
       };
+      if (fetchToken) headers['Authorization'] = `token ${fetchToken}`;
 
       try {
         const response = await fetch(url, { headers });
         if (!response.ok) {
-          throw new Error('Không thể lấy dữ liệu: ' + response.statusText);
+          const errorData = await response.json();
+          throw new Error(`Lỗi ${response.status}: ${errorData.message}`);
         }
         const data = await response.json();
-        const content = atob(data.content); // Decode base64
+        const content = atob(data.content);
         students = JSON.parse(content);
         renderCards();
       } catch (error) {
-        console.error('Lỗi khi tải dữ liệu:', error);
-        document.getElementById('card-container').innerHTML = '<p style="color: red;">Lỗi khi tải dữ liệu học sinh.</p>';
+        console.error('Lỗi tải dữ liệu:', error);
+        document.getElementById('card-container').innerHTML = `<p style="color: red;">Lỗi tải dữ liệu học sinh: ${error.message}. Vui lòng kiểm tra PAT hoặc đường dẫn.</p>`;
       }
     }
 
-    // === THÊM HOẶC SỬA HỌC SINH ===
     async function submitForm() {
       const token = document.getElementById('githubToken').value;
       const name = document.getElementById('name').value;
-      const phone = document.getElementById('phone').value;
-      const birthday = document.getElementById('birthday').value;
-      const email = document.getElementById('email').value;
-      const facebook = document.getElementById('facebook').value;
-      const instagram = document.getElementById('instagram').value;
-      const github = document.getElementById('github').value;
-      const tiktok = document.getElementById('tiktok').value;
-      const youtube = document.getElementById('youtube').value;
-      const avatar = document.getElementById('avatar').value;
       const messageDiv = document.getElementById('form-message');
       const errorDiv = document.getElementById('form-error');
 
-      // Reset thông báo
       messageDiv.textContent = '';
       errorDiv.textContent = '';
 
-      // Kiểm tra dữ liệu
       if (!name) {
         errorDiv.textContent = 'Vui lòng nhập họ tên!';
         return;
@@ -323,37 +340,27 @@
         return;
       }
 
-      // Tạo object học sinh
       const student = {
         name,
-        phone: phone || '',
-        birthday: birthday || '',
-        email: email || '',
-        facebook: facebook || '',
-        instagram: instagram || '',
-        github: github || '',
-        tiktok: tiktok || '',
-        youtube: youtube || '',
-        avatar: avatar || ''
+        phone: document.getElementById('phone').value || '',
+        birthday: document.getElementById('birthday').value || '',
+        email: document.getElementById('email').value || '',
+        facebook: document.getElementById('facebook').value || '',
+        instagram: document.getElementById('instagram').value || '',
+        github: document.getElementById('github').value || '',
+        tiktok: document.getElementById('tiktok').value || '',
+        youtube: document.getElementById('youtube').value || '',
+        avatar: document.getElementById('avatar').value || ''
       };
 
-      let commitMessage = '';
+      const commitMessage = currentEditIndex === -1 ? `Thêm học sinh mới: ${name}` : `Sửa thông tin học sinh: ${name}`;
       if (currentEditIndex === -1) {
-        // Thêm mới
         students.push(student);
-        commitMessage = 'Thêm học sinh mới: ' + name;
       } else {
-        // Sửa
         students[currentEditIndex] = student;
-        commitMessage = 'Sửa thông tin học sinh: ' + name;
       }
 
-      // Cập nhật file JSON trên GitHub
-      const owner = 'your-username'; // Thay bằng username GitHub
-      const repo = 'your-repo'; // Thay bằng tên repo
-      const path = 'data/students.json'; // Đường dẫn file JSON
-      const branch = 'main'; // Branch
-      const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+      const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`;
       const headers = {
         'Authorization': `token ${token}`,
         'Accept': 'application/vnd.github.v3+json',
@@ -361,51 +368,48 @@
       };
 
       try {
-        // Lấy SHA của file hiện tại
-        const getResponse = await fetch(`${url}?ref=${branch}`, { headers });
+        const getResponse = await fetch(`${url}?ref=${BRANCH}`, { headers });
         if (!getResponse.ok) {
-          throw new Error('Không thể lấy file: ' + getResponse.statusText);
+          const errorData = await getResponse.json();
+          throw new Error(`Lỗi lấy file: ${errorData.message}`);
         }
         const fileData = await getResponse.json();
         const sha = fileData.sha;
 
-        // Encode nội dung JSON mới thành base64
         const content = btoa(unescape(encodeURIComponent(JSON.stringify(students, null, 2))));
 
-        // Payload cho update
         const payload = {
           message: commitMessage,
           content: content,
           sha: sha,
-          branch: branch
+          branch: BRANCH
         };
 
-        // Gửi yêu cầu cập nhật
         const updateResponse = await fetch(url, {
           method: 'PUT',
-          headers: headers,
+          headers,
           body: JSON.stringify(payload)
         });
 
         if (updateResponse.ok) {
           messageDiv.textContent = (currentEditIndex === -1 ? 'Thêm' : 'Sửa') + ' học sinh thành công!';
-          renderCards(); // Cập nhật giao diện
-          resetForm(); // Reset form
+          renderCards();
+          resetForm();
         } else {
           const errorData = await updateResponse.json();
-          errorDiv.textContent = 'Lỗi: ' + errorData.message;
+          errorDiv.textContent = `Lỗi: ${errorData.message}`;
         }
       } catch (error) {
-        errorDiv.textContent = 'Lỗi: ' + error.message;
+        errorDiv.textContent = `Lỗi: ${error.message}`;
       }
     }
 
-    // === CHỈNH SỬA HỌC SINH ===
     function editStudent(index) {
       const s = students[index];
       document.getElementById('form-title').textContent = 'Sửa thông tin học sinh';
       document.getElementById('submit-btn').textContent = 'Cập nhật';
-      document.getElementById('githubToken').value = ''; // Để nhập lại nếu cần
+      document.getElementById('cancel-btn').style.display = 'inline-block';
+      document.getElementById('githubToken').value = '';
       document.getElementById('name').value = s.name;
       document.getElementById('phone').value = s.phone;
       document.getElementById('birthday').value = s.birthday;
@@ -417,66 +421,63 @@
       document.getElementById('youtube').value = s.youtube;
       document.getElementById('avatar').value = s.avatar;
       currentEditIndex = index;
-      // Cuộn lên form
       document.getElementById('student-form').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // === RESET FORM ===
     function resetForm() {
       document.getElementById('form-title').textContent = 'Thêm học sinh mới';
       document.getElementById('submit-btn').textContent = 'Thêm học sinh';
+      document.getElementById('cancel-btn').style.display = 'none';
       document.getElementById('student-form').reset();
       currentEditIndex = -1;
     }
 
-    // === HIỂN THỊ DỮ LIỆU ===
     function renderCards() {
-      const container = document.getElementById("card-container");
-      container.innerHTML = "";
+      const container = document.getElementById('card-container');
+      container.innerHTML = '';
       students.forEach((s, index) => {
-        const card = document.createElement("student-card");
+        const card = document.createElement('student-card');
         for (const key in s) {
           if (s[key]) card.setAttribute(key, s[key]);
         }
-        // Thêm nút sửa vào card
         const editBtn = document.createElement('button');
         editBtn.className = 'edit-btn';
         editBtn.textContent = 'Sửa';
         editBtn.onclick = () => editStudent(index);
-        card.querySelector('.card-content').appendChild(editBtn);
+        card.appendChild(editBtn);
         container.appendChild(card);
       });
     }
 
     class StudentCard extends HTMLElement {
       connectedCallback() {
-        const name = this.getAttribute("name");
-        const phone = this.getAttribute("phone");
-        const birthday = this.getAttribute("birthday");
-        const email = this.getAttribute("email");
-        const facebook = this.getAttribute("facebook");
-        const instagram = this.getAttribute("instagram");
-        const github = this.getAttribute("github");
-        const tiktok = this.getAttribute("tiktok");
-        const youtube = this.getAttribute("youtube");
-        const avatar = this.getAttribute("avatar");
+        const name = this.getAttribute('name') || '';
+        const phone = this.getAttribute('phone') || 'N/A';
+        const birthday = this.getAttribute('birthday') || 'N/A';
+        const email = this.getAttribute('email') || 'N/A';
+        const facebook = this.getAttribute('facebook') || '';
+        const instagram = this.getAttribute('instagram') || '';
+        const github = this.getAttribute('github') || '';
+        const tiktok = this.getAttribute('tiktok') || '';
+        const youtube = this.getAttribute('youtube') || '';
+        const avatar = this.getAttribute('avatar') || 'https://via.placeholder.com/80';
 
         this.innerHTML = `
           <div class="card-content">
             <div class="card-header">
-              <img src="${avatar || 'https://via.placeholder.com/80'}" class="avatar">
+              <img src="${avatar}" class="avatar" alt="Avatar">
               <h2>${name}</h2>
             </div>
             <div class="card-body">
-              <p><strong>Số điện thoại:</strong> ${phone || 'N/A'}</p>
-              <p><strong>Ngày sinh:</strong> ${birthday || 'N/A'}</p>
-              <p><strong>Email:</strong> ${email || 'N/A'}</p>
+              <p><strong>Số điện thoại:</strong> ${phone}</p>
+              <p><strong>Ngày sinh:</strong> ${birthday}</p>
+              <p><strong>Email:</strong> ${email}</p>
               <div class="social-links">
-                ${facebook ? `<a href="${facebook}" target="_blank"><i class="fab fa-facebook"></i></a>` : ""}
-                ${instagram ? `<a href="${instagram}" target="_blank"><i class="fab fa-instagram"></i></a>` : ""}
-                ${github ? `<a href="${github}" target="_blank"><i class="fab fa-github"></i></a>` : ""}
-                ${tiktok ? `<a href="${tiktok}" target="_blank"><i class="fab fa-tiktok"></i></a>` : ""}
-                ${youtube ? `<a href="${youtube}" target="_blank"><i class="fab fa-youtube"></i></a>` : ""}
+                ${facebook ? `<a href="${facebook}" target="_blank"><i class="fab fa-facebook"></i></a>` : ''}
+                ${instagram ? `<a href="${instagram}" target="_blank"><i class="fab fa-instagram"></i></a>` : ''}
+                ${github ? `<a href="${github}" target="_blank"><i class="fab fa-github"></i></a>` : ''}
+                ${tiktok ? `<a href="${tiktok}" target="_blank"><i class="fab fa-tiktok"></i></a>` : ''}
+                ${youtube ? `<a href="${youtube}" target="_blank"><i class="fab fa-youtube"></i></a>` : ''}
               </div>
             </div>
           </div>
@@ -484,10 +485,9 @@
       }
     }
 
-    customElements.define("student-card", StudentCard);
-    document.addEventListener("DOMContentLoaded", fetchStudents);
+    customElements.define('student-card', StudentCard);
+    document.addEventListener('DOMContentLoaded', fetchStudents);
 
-    // === XỬ LÝ NHẠC NỀN ===
     const audio = document.getElementById('bgMusic');
     const playPauseBtn = document.getElementById('playPauseBtn');
     const songSelector = document.getElementById('songSelector');
@@ -495,28 +495,20 @@
 
     function togglePlayPause() {
       if (audio.paused) {
-        audio.play()
-          .then(() => {
-            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i> Tạm dừng';
-            console.log('Nhạc đang phát:', songSelector.value);
-          })
-          .catch(err => console.error('Lỗi khi phát nhạc:', err));
+        audio.play().then(() => {
+          playPauseBtn.innerHTML = '<i class="fas fa-pause"></i> Tạm dừng';
+        }).catch(err => console.error('Lỗi phát nhạc:', err));
       } else {
         audio.pause();
         playPauseBtn.innerHTML = '<i class="fas fa-play"></i> Phát';
-        console.log('Nhạc đã tạm dừng');
       }
     }
 
     function changeSong() {
-      const selectedSong = songSelector.value;
-      audio.src = selectedSong;
-      audio.play()
-        .then(() => {
-          playPauseBtn.innerHTML = '<i class="fas fa-pause"></i> Tạm dừng';
-          console.log('Đã chuyển bài:', selectedSong);
-        })
-        .catch(err => console.error('Lỗi khi chuyển bài:', err));
+      audio.src = songSelector.value;
+      audio.play().then(() => {
+        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i> Tạm dừng';
+      }).catch(err => console.error('Lỗi chuyển bài:', err));
     }
 
     function toggleMusicPlayer() {
@@ -524,4 +516,4 @@
     }
   </script>
 </body>
-  </html>
+</html>
