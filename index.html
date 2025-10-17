@@ -12,7 +12,6 @@
       margin: 0;
       color: #222;
     }
-
     header {
       background: #4a90e2;
       color: #fff;
@@ -21,7 +20,6 @@
       font-size: 1.5rem;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-
     main {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -30,62 +28,31 @@
       max-width: 1100px;
       margin: auto;
     }
-
     friend-card {
       background: #fff;
       border-radius: 12px;
       box-shadow: 0 3px 8px rgba(0,0,0,0.1);
       overflow: hidden;
-      transition: 0.25s;
       position: relative;
+      transition: 0.25s;
     }
-
-    friend-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-    }
-
-    .delete-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: #ff4d4f;
-      border: none;
-      color: #fff;
-      padding: 5px 8px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      display: none;
-    }
-
-    friend-card:hover .delete-btn {
-      display: block;
-    }
-
+    friend-card:hover { transform: translateY(-5px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
     .card-content { padding: 1rem; }
     .card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
-
-    .avatar {
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid #4a90e2;
-    }
-
+    .avatar { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #4a90e2; }
     h2 { font-size: 1.2rem; margin: 0; }
     .card-body p { margin: 0.3rem 0; font-size: 0.95rem; }
-
-    .social-links a {
-      margin-right: 10px;
-      color: #4a90e2;
-      font-size: 1.3rem;
-      transition: 0.2s;
-    }
+    .social-links a { margin-right: 10px; color: #4a90e2; font-size: 1.3rem; }
     .social-links a:hover { color: #1f1f1f; }
+    .btns { position: absolute; top: 8px; right: 8px; display: flex; gap: 5px; }
+    .btns button {
+      background: #4a90e2; color: white; border: none; border-radius: 5px;
+      padding: 5px 8px; font-size: 0.8rem; cursor: pointer;
+    }
+    .btns .del { background: #ff4d4f; }
+    .btns button:hover { opacity: 0.85; }
 
-    /* Form ẩn mặc định */
+    /* Form */
     #friend-form {
       display: none;
       text-align: center;
@@ -96,7 +63,6 @@
       border-radius: 10px;
       box-shadow: 0 3px 8px rgba(0,0,0,0.1);
     }
-
     #friend-form input {
       width: 90%;
       margin: 5px 0;
@@ -104,7 +70,6 @@
       border: 1px solid #ccc;
       border-radius: 6px;
     }
-
     #friend-form button {
       background: #4a90e2;
       color: #fff;
@@ -114,9 +79,7 @@
       cursor: pointer;
       margin-top: 6px;
     }
-
     #friend-form button:hover { background: #357abd; }
-
     #add-btn {
       display: block;
       margin: 1rem auto;
@@ -130,7 +93,6 @@
     }
     #add-btn:hover { background: #357abd; }
 
-    /* Nhạc */
     .music-player {
       position: fixed;
       bottom: 15px;
@@ -159,8 +121,8 @@
     <input type="url" id="tiktok" placeholder="Link TikTok">
     <input type="url" id="youtube" placeholder="Link YouTube">
     <input type="file" id="avatarFile" accept="image/*" onchange="previewAvatar(event)">
-    <img id="avatarPreview" src="" alt="Xem trước ảnh" style="width:80px; height:80px; border-radius:50%; margin-top:10px; display:none;">
-    <button onclick="submitForm()">Lưu bạn</button>
+    <img id="avatarPreview" src="" alt="Xem trước ảnh" style="width:80px;height:80px;border-radius:50%;margin-top:10px;display:none;">
+    <button id="saveBtn" onclick="submitForm()">Lưu bạn</button>
     <p id="form-message" style="color:green;"></p>
     <p id="form-error" style="color:red;"></p>
   </section>
@@ -181,7 +143,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCrVM5Mqg33MY8feGyWDUQZ9lxJiEosNqU",
@@ -201,18 +163,18 @@
     const container = document.getElementById('card-container');
     const message = document.getElementById('form-message');
     const error = document.getElementById('form-error');
+    const saveBtn = document.getElementById('saveBtn');
     let avatarLink = "";
+    let editingId = null;
 
-    window.toggleForm = function() {
-      form.style.display = form.style.display === "none" || form.style.display === "" ? "block" : "none";
-    };
+    window.toggleForm = () => form.style.display = form.style.display === "block" ? "none" : "block";
 
-    window.previewAvatar = function(event) {
-      const file = event.target.files[0];
+    window.previewAvatar = e => {
+      const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = e => {
-        avatarLink = e.target.result;
+      reader.onload = ev => {
+        avatarLink = ev.target.result;
         const img = document.getElementById('avatarPreview');
         img.src = avatarLink;
         img.style.display = 'block';
@@ -238,14 +200,19 @@
       };
 
       try {
-        await push(ref(db, 'friends'), friend);
-        message.textContent = "✅ Đã lưu bạn!";
+        if (editingId) {
+          await update(ref(db, 'friends/' + editingId), friend);
+          message.textContent = "✅ Đã cập nhật bạn!";
+          editingId = null;
+          saveBtn.textContent = "Lưu bạn";
+        } else {
+          await push(ref(db, 'friends'), friend);
+          message.textContent = "✅ Đã thêm bạn!";
+        }
         error.textContent = "";
         form.reset();
         document.getElementById('avatarPreview').style.display = 'none';
-      } catch (err) {
-        error.textContent = "Lỗi: " + err.message;
-      }
+      } catch (err) { error.textContent = "Lỗi: " + err.message; }
     };
 
     onValue(ref(db, 'friends'), (snapshot) => {
@@ -275,7 +242,10 @@
         const avatar = this.getAttribute("avatar");
 
         this.innerHTML = `
-          <button class="delete-btn" onclick="deleteFriend('${id}')">Xóa</button>
+          <div class="btns">
+            <button onclick="editFriend('${id}')"><i class="fas fa-pen"></i></button>
+            <button class="del" onclick="deleteFriend('${id}')"><i class="fas fa-trash"></i></button>
+          </div>
           <div class="card-content">
             <div class="card-header">
               <img src="${avatar || 'https://via.placeholder.com/80'}" class="avatar">
@@ -298,17 +268,34 @@
     }
     customElements.define("friend-card", FriendCard);
 
-    window.deleteFriend = async function(id) {
-      if (confirm("Bạn có chắc muốn xóa người bạn này không?")) {
-        await remove(ref(db, `friends/${id}`));
+    window.deleteFriend = id => confirm("Xóa người bạn này?") && remove(ref(db, `friends/${id}`));
+
+    window.editFriend = id => {
+      editingId = id;
+      const f = container.querySelector(`[data-id="${id}"]`);
+      document.getElementById('name').value = f.getAttribute("name") || "";
+      document.getElementById('phone').value = f.getAttribute("phone") || "";
+      document.getElementById('birthday').value = f.getAttribute("birthday") || "";
+      document.getElementById('email').value = f.getAttribute("email") || "";
+      document.getElementById('facebook').value = f.getAttribute("facebook") || "";
+      document.getElementById('instagram').value = f.getAttribute("instagram") || "";
+      document.getElementById('github').value = f.getAttribute("github") || "";
+      document.getElementById('tiktok').value = f.getAttribute("tiktok") || "";
+      document.getElementById('youtube').value = f.getAttribute("youtube") || "";
+      avatarLink = f.getAttribute("avatar") || "";
+      if (avatarLink) {
+        const img = document.getElementById('avatarPreview');
+        img.src = avatarLink;
+        img.style.display = 'block';
       }
+      saveBtn.textContent = "Cập nhật";
+      form.style.display = "block";
     };
 
     const audio = document.getElementById('bgMusic');
     const playPauseBtn = document.getElementById('playPauseBtn');
     const songSelector = document.getElementById('songSelector');
-
-    window.togglePlayPause = function() {
+    window.togglePlayPause = () => {
       if (audio.paused) {
         audio.play().then(() => playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>');
       } else {
@@ -316,11 +303,11 @@
         playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
       }
     };
-    window.changeSong = function() {
+    window.changeSong = () => {
       audio.src = songSelector.value;
       audio.play();
       playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
     };
   </script>
 </body>
-</html>
+  </html>
