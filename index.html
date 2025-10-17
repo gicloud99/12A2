@@ -37,11 +37,30 @@
       box-shadow: 0 3px 8px rgba(0,0,0,0.1);
       overflow: hidden;
       transition: 0.25s;
+      position: relative;
     }
 
     friend-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #ff4d4f;
+      border: none;
+      color: #fff;
+      padding: 5px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      display: none;
+    }
+
+    friend-card:hover .delete-btn {
+      display: block;
     }
 
     .card-content { padding: 1rem; }
@@ -162,7 +181,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCrVM5Mqg33MY8feGyWDUQZ9lxJiEosNqU",
@@ -233,8 +252,9 @@
       const data = snapshot.val();
       container.innerHTML = "";
       if (!data) return;
-      Object.values(data).forEach(f => {
+      Object.entries(data).forEach(([id, f]) => {
         const card = document.createElement('friend-card');
+        card.setAttribute("data-id", id);
         for (const key in f) if (f[key]) card.setAttribute(key, f[key]);
         container.appendChild(card);
       });
@@ -242,6 +262,7 @@
 
     class FriendCard extends HTMLElement {
       connectedCallback() {
+        const id = this.getAttribute("data-id");
         const name = this.getAttribute("name");
         const phone = this.getAttribute("phone");
         const birthday = this.getAttribute("birthday");
@@ -254,6 +275,7 @@
         const avatar = this.getAttribute("avatar");
 
         this.innerHTML = `
+          <button class="delete-btn" onclick="deleteFriend('${id}')">Xóa</button>
           <div class="card-content">
             <div class="card-header">
               <img src="${avatar || 'https://via.placeholder.com/80'}" class="avatar">
@@ -275,6 +297,12 @@
       }
     }
     customElements.define("friend-card", FriendCard);
+
+    window.deleteFriend = async function(id) {
+      if (confirm("Bạn có chắc muốn xóa người bạn này không?")) {
+        await remove(ref(db, `friends/${id}`));
+      }
+    };
 
     const audio = document.getElementById('bgMusic');
     const playPauseBtn = document.getElementById('playPauseBtn');
