@@ -35,7 +35,7 @@
       overflow: hidden;
       position: relative;
       transition: 0.25s;
-      /* Không cần cursor: pointer nữa vì không còn chức năng nhấn vào thẻ */
+      cursor: pointer; /* Thêm con trỏ để gợi ý rằng thẻ có thể tương tác */
     }
     friend-card:hover { transform: translateY(-5px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
     .card-content { padding: 1rem; }
@@ -46,10 +46,31 @@
     .social-links a { margin-right: 10px; color: #4a90e2; font-size: 1.3rem; }
     .social-links a:hover { color: #1f1f1f; }
     
-    /* Đã XÓA CSS cho .btns và .show-btns */
+    /* Đã tối ưu: Ẩn mặc định các nút Sửa/Xóa */
+    .btns { 
+      position: absolute; 
+      top: 8px; 
+      right: 8px; 
+      display: flex; 
+      gap: 5px; 
+      opacity: 0; /* Ẩn các nút */
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s; 
+    }
+    /* Lớp để hiển thị các nút khi thẻ được click */
+    friend-card.show-btns .btns {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .btns button {
+      background: #4a90e2; color: white; border: none; border-radius: 5px;
+      padding: 5px 8px; font-size: 0.8rem; cursor: pointer;
+    }
+    .btns .del { background: #ff4d4f; }
+    .btns button:hover { opacity: 0.85; }
 
     /* Form */
-    /* Form vẫn được giữ lại để thêm bạn mới */
     #friend-form {
       display: none;
       text-align: center;
@@ -162,7 +183,7 @@
     const error = document.getElementById('form-error');
     const saveBtn = document.getElementById('saveBtn');
     let avatarLink = "";
-    let editingId = null; // Biến này vẫn giữ lại vì logic Thêm/Lưu đang dùng nó
+    let editingId = null;
 
     window.toggleForm = () => form.style.display = form.style.display === "block" ? "none" : "block";
 
@@ -198,11 +219,9 @@
 
       try {
         if (editingId) {
-          // Khi đã bỏ nút Sửa, logic này chỉ xảy ra nếu người dùng chỉnh sửa và chưa reload trang.
-          // Để đảm bảo form luôn ở trạng thái Thêm Mới, ta nên reset editingId sau khi submit.
           await update(ref(db, 'friends/' + editingId), friend);
           message.textContent = "✅ Đã cập nhật bạn!";
-          editingId = null; // Quan trọng: Đảm bảo sau khi cập nhật xong sẽ quay về chế độ Thêm mới
+          editingId = null;
           saveBtn.textContent = "Lưu bạn";
         } else {
           await push(ref(db, 'friends'), friend);
@@ -228,7 +247,7 @@
 
     class FriendCard extends HTMLElement {
       connectedCallback() {
-        // ... (giữ nguyên phần lấy thuộc tính) ...
+        const id = this.getAttribute("data-id");
         const name = this.getAttribute("name");
         const phone = this.getAttribute("phone");
         const birthday = this.getAttribute("birthday");
@@ -240,9 +259,29 @@
         const youtube = this.getAttribute("youtube");
         const avatar = this.getAttribute("avatar");
         
-        // --- Đã XÓA logic onclick để hiện nút Xoá/Sửa ---
+        // --- Đã tối ưu: Xử lý sự kiện click vào thẻ ---
+        this.onclick = function(e) {
+            // Ngăn chặn sự kiện click lan ra nếu người dùng click vào nút Sửa/Xóa (để không bị ẩn nút ngay lập tức)
+            if (e.target.closest('.btns button')) {
+                return; 
+            }
+            
+            // Xóa class 'show-btns' khỏi tất cả các thẻ khác
+            document.querySelectorAll('friend-card.show-btns').forEach(card => {
+                if (card !== this) {
+                    card.classList.remove('show-btns');
+                }
+            });
+            // Chuyển đổi trạng thái hiển thị của các nút trên thẻ hiện tại
+            this.classList.toggle('show-btns');
+        };
+        // ----------------------------------------
 
         this.innerHTML = `
+          <div class="btns">
+            <button onclick="editFriend('${id}')"><i class="fas fa-pen"></i></button>
+            <button class="del" onclick="deleteFriend('${id}')"><i class="fas fa-trash"></i></button>
+          </div>
           <div class="card-content">
             <div class="card-header">
               <img src="${avatar || 'https://via.placeholder.com/80'}" class="avatar">
@@ -265,10 +304,44 @@
     }
     customElements.define("friend-card", FriendCard);
 
-    // --- Đã XÓA hàm window.deleteFriend và window.editFriend ---
-    // (Giữ lại các hàm này ở đây để không bị lỗi nếu mã khác gọi tới, nhưng chúng không có tác dụng)
-    window.deleteFriend = id => console.log("Chức năng xóa đã bị vô hiệu hóa.");
-    window.editFriend = id => console.log("Chức năng sửa đã bị vô hiệu hóa.");
+    window.deleteFriend = id => confirm("Xóa người bạn này?") && remove(ref(db, `friends/${id}`));
+
+    window.editFriend = id => {
+      editingId = id;
+      // Lấy thẻ hiện tại để đọc các thuộc tính
+      const f = container.querySelector(`[data-id="${id}"]`); 
+      
+      // Điền dữ liệu vào form
+      document.getElementById('name').value = f.getAttribute("name") || "";
+      document.getElementById('phone').value = f.getAttribute("phone") || "";
+      document.getElementById('birthday').value = f.getAttribute("birthday") || "";
+      document.getElementById('email').value = f.getAttribute("email") || "";
+      document.getElementById('facebook').value = f.getAttribute("facebook") || "";
+      document.getElementById('instagram').value = f.getAttribute("instagram") || "";
+      document.getElementById('github').value = f.getAttribute("github") || "";
+      document.getElementById('tiktok').value = f.getAttribute("tiktok") || "";
+      document.getElementById('youtube').value = f.getAttribute("youtube") || "";
+      
+      // Xử lý ảnh đại diện
+      avatarLink = f.getAttribute("avatar") || "";
+      const img = document.getElementById('avatarPreview');
+      if (avatarLink) {
+        img.src = avatarLink;
+        img.style.display = 'block';
+      } else {
+        img.style.display = 'none';
+        img.src = '';
+      }
+      
+      // Thay đổi chữ trên nút
+      saveBtn.textContent = "Cập nhật";
+      
+      // Hiển thị form
+      form.style.display = "block";
+      
+      // (Không bắt buộc) Cuộn lên đầu form để người dùng dễ nhìn
+      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
 
     const audio = document.getElementById('bgMusic');
     const playPauseBtn = document.getElementById('playPauseBtn');
@@ -289,3 +362,4 @@
   </script>
 </body>
   </html>
+  
