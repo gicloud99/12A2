@@ -35,6 +35,7 @@
       overflow: hidden;
       position: relative;
       transition: 0.25s;
+      /* Không cần cursor: pointer nữa vì không còn chức năng nhấn vào thẻ */
     }
     friend-card:hover { transform: translateY(-5px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
     .card-content { padding: 1rem; }
@@ -44,15 +45,11 @@
     .card-body p { margin: 0.3rem 0; font-size: 0.95rem; }
     .social-links a { margin-right: 10px; color: #4a90e2; font-size: 1.3rem; }
     .social-links a:hover { color: #1f1f1f; }
-    .btns { position: absolute; top: 8px; right: 8px; display: flex; gap: 5px; }
-    .btns button {
-      background: #4a90e2; color: white; border: none; border-radius: 5px;
-      padding: 5px 8px; font-size: 0.8rem; cursor: pointer;
-    }
-    .btns .del { background: #ff4d4f; }
-    .btns button:hover { opacity: 0.85; }
+    
+    /* Đã XÓA CSS cho .btns và .show-btns */
 
     /* Form */
+    /* Form vẫn được giữ lại để thêm bạn mới */
     #friend-form {
       display: none;
       text-align: center;
@@ -165,7 +162,7 @@
     const error = document.getElementById('form-error');
     const saveBtn = document.getElementById('saveBtn');
     let avatarLink = "";
-    let editingId = null;
+    let editingId = null; // Biến này vẫn giữ lại vì logic Thêm/Lưu đang dùng nó
 
     window.toggleForm = () => form.style.display = form.style.display === "block" ? "none" : "block";
 
@@ -201,9 +198,11 @@
 
       try {
         if (editingId) {
+          // Khi đã bỏ nút Sửa, logic này chỉ xảy ra nếu người dùng chỉnh sửa và chưa reload trang.
+          // Để đảm bảo form luôn ở trạng thái Thêm Mới, ta nên reset editingId sau khi submit.
           await update(ref(db, 'friends/' + editingId), friend);
           message.textContent = "✅ Đã cập nhật bạn!";
-          editingId = null;
+          editingId = null; // Quan trọng: Đảm bảo sau khi cập nhật xong sẽ quay về chế độ Thêm mới
           saveBtn.textContent = "Lưu bạn";
         } else {
           await push(ref(db, 'friends'), friend);
@@ -229,7 +228,7 @@
 
     class FriendCard extends HTMLElement {
       connectedCallback() {
-        const id = this.getAttribute("data-id");
+        // ... (giữ nguyên phần lấy thuộc tính) ...
         const name = this.getAttribute("name");
         const phone = this.getAttribute("phone");
         const birthday = this.getAttribute("birthday");
@@ -240,12 +239,10 @@
         const tiktok = this.getAttribute("tiktok");
         const youtube = this.getAttribute("youtube");
         const avatar = this.getAttribute("avatar");
+        
+        // --- Đã XÓA logic onclick để hiện nút Xoá/Sửa ---
 
         this.innerHTML = `
-          <div class="btns">
-            <button onclick="editFriend('${id}')"><i class="fas fa-pen"></i></button>
-            <button class="del" onclick="deleteFriend('${id}')"><i class="fas fa-trash"></i></button>
-          </div>
           <div class="card-content">
             <div class="card-header">
               <img src="${avatar || 'https://via.placeholder.com/80'}" class="avatar">
@@ -268,29 +265,10 @@
     }
     customElements.define("friend-card", FriendCard);
 
-    window.deleteFriend = id => confirm("Xóa người bạn này?") && remove(ref(db, `friends/${id}`));
-
-    window.editFriend = id => {
-      editingId = id;
-      const f = container.querySelector(`[data-id="${id}"]`);
-      document.getElementById('name').value = f.getAttribute("name") || "";
-      document.getElementById('phone').value = f.getAttribute("phone") || "";
-      document.getElementById('birthday').value = f.getAttribute("birthday") || "";
-      document.getElementById('email').value = f.getAttribute("email") || "";
-      document.getElementById('facebook').value = f.getAttribute("facebook") || "";
-      document.getElementById('instagram').value = f.getAttribute("instagram") || "";
-      document.getElementById('github').value = f.getAttribute("github") || "";
-      document.getElementById('tiktok').value = f.getAttribute("tiktok") || "";
-      document.getElementById('youtube').value = f.getAttribute("youtube") || "";
-      avatarLink = f.getAttribute("avatar") || "";
-      if (avatarLink) {
-        const img = document.getElementById('avatarPreview');
-        img.src = avatarLink;
-        img.style.display = 'block';
-      }
-      saveBtn.textContent = "Cập nhật";
-      form.style.display = "block";
-    };
+    // --- Đã XÓA hàm window.deleteFriend và window.editFriend ---
+    // (Giữ lại các hàm này ở đây để không bị lỗi nếu mã khác gọi tới, nhưng chúng không có tác dụng)
+    window.deleteFriend = id => console.log("Chức năng xóa đã bị vô hiệu hóa.");
+    window.editFriend = id => console.log("Chức năng sửa đã bị vô hiệu hóa.");
 
     const audio = document.getElementById('bgMusic');
     const playPauseBtn = document.getElementById('playPauseBtn');
